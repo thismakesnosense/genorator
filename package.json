@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/thismakesnosense/genorator#readme",
   "dependencies": {
+    "axios": "^0.19.2",
     "inquirer": "^7.0.3",
     "puppeteer": "^2.0.0",
     "util": "^0.12.1"

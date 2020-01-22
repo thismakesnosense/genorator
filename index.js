@@ -2,38 +2,22 @@ const puppeteer = require('puppeteer');
 const fs = require("fs");
 const inquirer = require("inquirer");
 const util = require("util");
+const axios = require("axios");
 
 const writeFileAsync = util.promisify(fs.writeFile);
 
 function promptUser() {
   return inquirer.prompt([
-    {
-      type: "input",
-      name: "name",
-      message: "What is your name?"
-    },
-    {
-      type: "input",
-      name: "location",
-      message: "Where are you from?"
-    },
-    {
-      type: "input",
-      name: "color",
-      message: "What is your favorite color?"
-    },
+   
     {
       type: "input",
       name: "github",
       message: "Enter your GitHub Username"
     },
-    {
-      type: "input",
-      name: "linkedin",
-      message: "Enter your LinkedIn URL."
-    }
   ]);
 }
+
+
 
 
 function generateHTML(answers) {
@@ -53,9 +37,10 @@ function generateHTML(answers) {
     <p class="lead">I am from ${answers.location}.</p>
     <h3>Example heading <span class="badge badge-secondary">Contact Me</span></h3>
     <ul class="list-group">
-      <li class="list-group-item">My GitHub username is ${answers.github}</li>
-      <li class="list-group-item">Link to my GitHub <link href="https://github.com/${answers.github}">
-      <li class="list-group-item">LinkedIn: ${answers.linkedin}</li>
+      <li class="list-group-item">My GitHub username is ${answers.login}</li>
+      <li class="list-group-item">My GitHub bio ${answers.bio}</li>
+      
+      
     </ul>
   </div>
 </div>
@@ -63,9 +48,26 @@ function generateHTML(answers) {
 </html>`;
 }
 
+
+
 promptUser()
-  .then(function(answers) {
-    const html = generateHTML(answers);
+  .then(function(gitanswers){
+  return axios.get(`https://api.github.com/users/${gitanswers.github}`).then(function(res){
+    let htmlanswers = {
+      bio: res.data.bio,
+      location: res.data.location,
+      color: "danger",
+      name: res.data.name,
+      login: res.data.login,
+    }
+    return htmlanswers
+        // console.log(res.data)
+     }).catch(function(err){
+       console.error(err)
+     })
+  })
+  .then(function(htmlanswers) {
+    const html = generateHTML(htmlanswers);
 
     return writeFileAsync("pdf.html", html);
   })
@@ -91,17 +93,4 @@ promptUser()
     console.log(err);
   });
 
-// (async () => {
-//     const browser = await puppeteer.launch();
-
-//     const page = await browser.newPage();
-
-//     const html = fs.readFileSync("./pdf.html", "utf8");
-
-//     await page.setContent(html);
-//     await page.pdf({
-//         path: 'page.pdf'
-//     });
-
-//     await browser.close();
-// })();  
+ 
